@@ -12,6 +12,8 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Button from '@material-ui/core/Button';
+
 
 import InputBase from '@material-ui/core/InputBase';
 import IconButton from '@material-ui/core/IconButton';
@@ -41,7 +43,10 @@ const useStyles = makeStyles(theme => ({
     },
     iconButton: {
         padding: 10,
-    }
+    },
+    button: {
+        margin: theme.spacing(1),
+    },
 }));
 
 
@@ -49,7 +54,7 @@ function analisarResposta(response) {
 
     if (!response.ok) {
 
-        let mensagemErro = 'Houve um erro ao consultar o repositório.';
+        let mensagemErro = 'Houve um erro ao efetuar a consulta remota.';
 
         if (response.status === 404) {
             mensagemErro = 'O repositório não foi localizado.';
@@ -81,19 +86,33 @@ export default function App() {
     const [rows, setRows] = useState([]);
     const [termoPesquisa, setTermoPesquisa] = useState('yahoo/kafka-manager');
 
+    const gravarPullRequests = async e => {
+
+        const apiEndpoint = `https://github-pullrequest-api.herokuapp.com/`;
+        const fetchConfig = {
+            method: 'POST',
+            headers: new Headers({
+                'content-type': 'application/json'
+            })
+        }
+
+        fetch(apiEndpoint, fetchConfig)
+            .then(analisarResposta)
+    };
+
     const consultarPullRequests = async e => {
 
         // limpa a lista de pull requests
         setRows([]);
 
         // aplica o termo da pesquisa no template de url para consulta de pull requests do git
-        const url = `https://api.github.com/repos/${termoPesquisa}/pulls`;
+        const apiEndpoint = `https://api.github.com/repos/${termoPesquisa}/pulls`;
 
         // inicia o indicador de pesquisa
         setLoading(true);
 
         // consulta os pull requests na API do github e renderiza na tabela
-        fetch(url)
+        fetch(apiEndpoint)
             .then(analisarResposta)
             .then(parseJsonResponse)
             .then(rows => {
@@ -161,6 +180,13 @@ export default function App() {
                                 </TableBody>
                             </Table>
                         </Paper>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <Button variant="contained" color="primary" className={classes.button}
+                            disabled={rows.length === 0}>
+                            Gravar
+                        </Button>
                     </Grid>
                 </Grid>
 
